@@ -29,6 +29,7 @@ struct ManageFilesView: View {
         Human(firstName: "Toto", lastName: "tata"),
         Human(firstName: "Steve", lastName: "Jobs")
     ]
+    
     @State var fileSet = [Human]()
     
     @State private var viewMode = 0

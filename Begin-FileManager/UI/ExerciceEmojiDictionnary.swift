@@ -8,20 +8,32 @@
 
 import SwiftUI
 
-struct Emoji: Codable {
+struct Emoji: Codable, Hashable {
     var symbol: String
     var name: String
     var detailDescription: String
     var usage: String
     
+    static let DocumentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     
-    static func loadFromFile() -> [Emoji]?  {
-       return nil
-    }
+    static let ArchiveURL = DocumentsDirectory.appendingPathComponent("emojis").appendingPathExtension("plist")
     
     static func saveToFile(emojis: [Emoji]) {
-       
+        let propertyListEncoder = PropertyListEncoder()
+        let codedEmojis = try? propertyListEncoder.encode(emojis)
+        
+        try? codedEmojis?.write(to: ArchiveURL, options: .noFileProtection)
     }
+    
+    static func loadFromFile() -> [Emoji]? {
+        guard let codedEmojis = try? Data(contentsOf: ArchiveURL) else { return nil }
+        
+        let propertyListDecoder = PropertyListDecoder()
+        
+        return try? propertyListDecoder.decode(Array<Emoji>.self, from: codedEmojis)
+    }
+    
+    
     
     static func loadSampleEmojis() -> [Emoji] {
         return [Emoji(symbol: "😀", name: "Grinning Face", detailDescription: "A typical smiley face.", usage: "happiness"),
@@ -44,7 +56,22 @@ struct Emoji: Codable {
 
 struct ExerciceEmojiDictionnary: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationView {
+            List{
+                ForEach(Emoji.loadSampleEmojis(), id: \.self) { emoji in
+                    HStack{
+                        Text("\(emoji.symbol)")
+                        VStack(alignment:.leading){
+                            Text("\(emoji.name)")
+                                .font(.headline)
+                            Text("\(emoji.detailDescription)")
+                                .font(.subheadline)
+                        }
+                    }
+                }
+            }
+            .navigationBarTitle("Emoji dictionnary")
+        }
     }
 }
 
